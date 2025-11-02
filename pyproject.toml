@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=40.8.0"]
+
+[project]
+name = "timeline"
+version = "2025.0.0"
+dependencies=[
+    "dash",
+    "click",
+    "plotly",
+    "sqlalchemy"
+]
+
+[project.scripts]
+timeline = "timeline.show:run_app"
