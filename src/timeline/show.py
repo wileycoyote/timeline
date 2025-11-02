@@ -5,7 +5,6 @@
 import plotly.express as px
 import pandas as pd
 import math
-from dash import Dash, dash_table
 
 '''
 see
@@ -22,7 +21,6 @@ def conv(x):
 def run_app():
     source = pd.read_csv('data/data.csv')
     # import pprint
-    import pdb; pdb.set_trace()
     source['start'] = pd.to_datetime(source['start'])
     # source['start'] = source['start'].apply(conv)
     source['end'] = pd.to_datetime(source['end'])
@@ -51,16 +49,5 @@ def run_app():
                 "showarrow": False,
             }
         )
-#    fig.show()
-    app = Dash()
-
-    app.layout = dash_table.DataTable(
-        style_data={
-            'whiteSpace': 'normal',
-            'height': 'auto',
-            'lineHeight': '15px'
-        },
-        data=fig.to_dict(),
-        columns=[{'id': c, 'name': c} for c in source.columns]
-    )
-    app.run(debug=True)
+    fig.show()
+    fig.write_html("data/test_gantt.html", include_plotlyjs="cdn")
