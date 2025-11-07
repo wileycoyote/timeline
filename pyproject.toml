@@ -8,8 +8,11 @@ dependencies=[
     "dash",
     "click",
     "plotly",
-    "sqlalchemy"
+    "sqlalchemy",
+    "dash",
+    "dash-calendar-timeline"
 ]
 
 [project.scripts]
 timeline = "timeline.show:run_app"
+timeline_dash = "timeline.show_dash:run_app"

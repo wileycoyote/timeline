@@ -40,27 +40,26 @@ items = [
 ]
 
 
-app = Dash(
-    __name__,
-    meta_tags=[
-        {
-            "name": "viewport",
-            "content": "width=device-width, initial-scale=1.0"
-        }
-    ]
-)
+def run_app():
+    app = Dash(
+        __name__,
+        meta_tags=[
+            {
+                "name": "viewport",
+                "content": "width=device-width, initial-scale=1.0"
+            }
+        ]
+    )
 
-app.layout = html.Div(
-    [
-        DashCalendarTimeline(
-            groups=groups,
-            items=items,
-            defaultTimeStart=to_unix_ms(now),
-            defaultTimeEnd=to_unix_ms(now + timedelta(hours=5))
-        )
-    ]
-)
-
-
-if __name__ == '__main__':
+    app.layout = html.Div(
+        [
+            DashCalendarTimeline(
+                groups=groups,
+                items=items,
+                defaultTimeStart=to_unix_ms(now),
+                defaultTimeEnd=to_unix_ms(now + timedelta(hours=5)),
+                dateHeaderUnit="month"
+            )
+        ]
+    )
     app.run(debug=True)
