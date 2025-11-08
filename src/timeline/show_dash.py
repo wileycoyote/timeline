@@ -2,6 +2,14 @@ from datetime import datetime
 from dash_calendar_timeline import DashCalendarTimeline
 from dash import Dash, html
 
+"""
+
+https://github.com/zenalytiks/dash-calendar-timeline/blob/main/LICENSE
+https://www.npmjs.com/package/react-calendar-timeline
+https://community.plotly.com/t/introducing-dash-calendar-timeline-a-new-timeline-visualization-component-for-plotly-dash/92827
+
+"""
+
 now = datetime.now()
 
 
@@ -36,22 +44,22 @@ items = [
         "id": 1,
         "group": 1,
         "title": "item 1",
-        "start_time": to_year_ms(2011),
-        "end_time": to_year_ms(2014)
+        "start_time": to_year_ms(1511),
+        "end_time": to_year_ms(1514)
     },
     {
         "id": 2,
         "group": 2,
         "title": "item 2",
-        "start_time": to_year_ms(2012),
-        "end_time": to_year_ms(2017)
+        "start_time": to_year_ms(1512),
+        "end_time": to_year_ms(1517)
     },
     {
         "id": 3,
         "group": 1,
         "title": "item 3",
-        "start_time": to_year_ms(2016),
-        "end_time": to_year_ms(2025)
+        "start_time": to_year_ms(1516),
+        "end_time": to_year_ms(1525)
     }
 ]
 
@@ -72,11 +80,11 @@ def run_app():
             DashCalendarTimeline(
                 groups=groups,
                 items=items,
-                defaultTimeStart=to_year_ms("2000"),
-                defaultTimeEnd=to_year_ms("2030"),
+                defaultTimeStart=to_year_ms("1500"),
+                defaultTimeEnd=to_year_ms("1530"),
                 dateHeaderUnit="year",
-                visibleTimeStart=to_year_ms("2010"),
-                visibleTimeEnd=to_year_ms("2020")
+                visibleTimeStart=to_year_ms("1510"),
+                visibleTimeEnd=to_year_ms("1520")
             )
         ],
         style={"overflow": "scroll"}
