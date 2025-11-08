@@ -72,10 +72,13 @@ def run_app():
             DashCalendarTimeline(
                 groups=groups,
                 items=items,
-                defaultTimeStart=to_year_ms("2012"),
-                defaultTimeEnd=to_year_ms("2020"),
-                dateHeaderUnit="year"
+                defaultTimeStart=to_year_ms("2000"),
+                defaultTimeEnd=to_year_ms("2030"),
+                dateHeaderUnit="year",
+                visibleTimeStart=to_year_ms("2010"),
+                visibleTimeEnd=to_year_ms("2020")
             )
-        ]
+        ],
+        style={"overflow": "scroll"}
     )
     app.run(debug=True)
