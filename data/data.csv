@@ -1,2 +1,5 @@
-event,start,end,notes
-External Events,2000-01-01,2000-03-01,Printing Press Invented
+start,end,notes,group
+1400,1454,Fall of Constantinople,External Events
+1440,1441,Printing Press,External Events
+1337,1454,One Hundred Years War,External Events
+1500,1501,Fake Event,External Events
