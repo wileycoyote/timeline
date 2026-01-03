@@ -1,8 +1,11 @@
 PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS "meta" (
-"timeline" TEXT primary_key NOT NULL, 
-"requested_order" integer,
-"line_type" TEXT);
+"timeline" TEXT NOT NULL, 
+"requested_order" INTEGER,
+"line_type" TEXT,
+"colour" TEXT,
+PRIMARY KEY ("timeline")
+);
 
 CREATE TABLE IF NOT EXISTS "timelines"(
 "timeline" TEXT, 
@@ -10,5 +13,6 @@ CREATE TABLE IF NOT EXISTS "timelines"(
 "start" TEXT,
 "end" TEXT,
 "notes" TEXT,
-FOREIGN KEY("timeline") REFERENCES meta("timeline")
+FOREIGN KEY("timeline") 
+REFERENCES meta("timeline")
 );
