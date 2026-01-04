@@ -1,53 +1,57 @@
-# Plotly
-# https://plotly.com/python/gantt/
-# https://plotly.com/python-api-reference/generated/plotly.express.timeline.html
-# https://plotly.com/python/discrete-color/#color-sequences-in-plotly-express
-import plotly.express as px
+import matplotlib.pyplot as plt
+import sqlite3
 import pandas as pd
-import math
+import pprint as pp
 
-'''
-see
-https://stackoverflow.com/questions/67405363/transforming-string-containing-a-date-before-1600-to-datetime-object-in-pandas
-for using julian date type things
-'''
+start_year = 1500
+end_year = 1526
+range_units = 54
 
 
-def conv(x):
-    year, day, month = map(int, x.split("-"))
-    return pd.Period(year=year, month=month, day=day, freq="M")
+def get_data():
+    conn = sqlite3.connect('database/timelines.db')
+    query = """SELECT requested_order, timelines.timeline, label, start,end,
+            line_type
+            FROM timelines, meta
+            WHERE timelines.timeline=meta.timeline;"""
+
+    df = pd.read_sql_query(query, conn)
+    return df
+
+
+def get_date_frame(df, s, e):
+    # sort by values so requested order needs to be in place here somewhere
+    # only the requested range of rows needed as well
+    timelines = df['timeline'].unique()
+    for timeline in timelines:
+        df.query('timeline=="' + timeline + '"')
+    return "<TOKEN RETURN>"
 
 
 def run_app():
-    source = pd.read_csv('data/data.csv')
-    # import pprint
-    source['start'] = pd.to_datetime(source['start'])
-    # source['start'] = source['start'].apply(conv)
-    source['end'] = pd.to_datetime(source['end'])
-    # source['end'] = source['end'].apply(conv)
-    print("YYYYYYYYYYYYYY")
-    fig = px.timeline(
-        # source.sort_values('start'),
-        source,
-        x_start="start",
-        x_end="end",
-        y="event",
-        text="event",
-        color_discrete_sequence=["red"])
+    # this initialises the data
+    df = get_data()
+    # this navigates the dates
+    timelines = get_date_frame(df, start_year, end_year)
+    pp.pprint(timelines)
+    return
 
-    for idx, row in source.iterrows():
-        periods = pd.date_range(row["start"], row["end"], freq='1D')
-        center_pos = math.floor(len(periods) / 2)
-        x_dates = periods[center_pos]
-        print(x_dates)
-        fig.add_annotation(
-            {
-                "x": x_dates,  # row["Finish"],
-                "y": row["event"],
-                "text": row["notes"],
-                "align": "center",
-                "showarrow": False,
-            }
-        )
-    fig.show()
-    fig.write_html("data/test_gantt.html", include_plotlyjs="cdn")
+    # to allow for distribution of horizontal timelines, this
+    with plt.style.context('Solarize_Light2'):
+        fig, ax = plt.subplots(figsize=(20, 14), layout="constrained")
+        ax.set(title="Timelines for 1300 to 1600")
+        #
+        # set the top axis in years
+        # set default values for now
+        years = [str(x) for x in range(start_year, end_year, 1)]
+        posn = [x for x in range(2, range_units, 2)]
+        # Remove the y-axis and some spines.
+        ax.yaxis.set_visible(False)
+        ax.spines[["bottom", "right"]].set_visible(False)
+        ax.invert_yaxis()
+        ax.xaxis.tick_top()
+        ax.set_xticks(posn, years)
+        ax.margins(y=0.2)
+
+        # Work through the queue
+    plt.show()
