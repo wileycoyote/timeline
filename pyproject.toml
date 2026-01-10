@@ -15,7 +15,3 @@ dependencies=[
 
 [project.scripts]
 timeline = "timeline.show:run_app"
-timeline_dash = "timeline.show_dash:run_app"
-timeline_tk = "timeline.show_tk:run_app"
-timeline_mpl = "timeline.show_mpl:run_app"
-timeline_gantt = "timeline.show_gantt:run_app"

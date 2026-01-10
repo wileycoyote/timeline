@@ -3,38 +3,49 @@ import sqlite3
 import pandas as pd
 import pprint as pp
 
-start_year = 1500
-end_year = 1526
+def_start_frame = 1500
+def_end_frame = 1526
 range_units = 54
+
+conn = None
 
 
 def get_data():
     conn = sqlite3.connect('database/timelines.db')
-    query = """SELECT requested_order, timelines.timeline, label, start,end,
-            line_type
-            FROM timelines, meta
-            WHERE timelines.timeline=meta.timeline;"""
+    query = """SELECT timeline, label, start, end
+            FROM events
+            """
+    # set up the dataframe the
+    e_df = pd.read_sql_query(
+        query,
+        conn,
+        index_col='start'
+    )
 
-    df = pd.read_sql_query(query, conn)
-    return df
+    q = """Select timeline, label, colour, requested_order, line_type
+        from timelines
+        order by requested_order"""
+    t_df = pd.read_sql_query(
+        q,
+        conn,
+        index_col='timeline'
+    )
+    return e_df, t_df
 
 
-def get_date_frame(df, s, e):
-    # sort by values so requested order needs to be in place here somewhere
-    # only the requested range of rows needed as well
-    timelines = df['timeline'].unique()
-    for timeline in timelines:
-        df.query('timeline=="' + timeline + '"')
-    return "<TOKEN RETURN>"
+def get_events_slice(df, s, e):
+    # get all the events columns that intersect our time-slice
+    q = f"start > '{s}' and start <= '{e}'"
+    slice_df = df.query(q)
+    return slice_df
 
 
 def run_app():
     # this initialises the data
-    df = get_data()
+    e_df, t_df = get_data()
     # this navigates the dates
-    timelines = get_date_frame(df, start_year, end_year)
-    pp.pprint(timelines)
-    return
+    events_slice = get_events_slice(e_df, def_start_year, def_end_year)
+    timeline_names = events_slice['timeline'].unique()
 
     # to allow for distribution of horizontal timelines, this
     with plt.style.context('Solarize_Light2'):
@@ -43,7 +54,7 @@ def run_app():
         #
         # set the top axis in years
         # set default values for now
-        years = [str(x) for x in range(start_year, end_year, 1)]
+        years = [str(x) for x in range(def_start_frame, def_end_frame, 1)]
         posn = [x for x in range(2, range_units, 2)]
         # Remove the y-axis and some spines.
         ax.yaxis.set_visible(False)
@@ -53,5 +64,14 @@ def run_app():
         ax.set_xticks(posn, years)
         ax.margins(y=0.2)
 
-        # Work through the queue
+        # do the timelines
+        for t in timeline_names:
+            print(t)
+            # get the timeline display data
+            timeline_data = t_df.query(f"timeline == '{t}'")
+            pp.pprint(timeline_data)
+            # get the associated events data
+            events = events_slice.query(f"timeline == '{t}'")
+            pp.pprint(events)
+
     plt.show()
