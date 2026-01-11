@@ -8,9 +8,8 @@ dependencies=[
     "dash",
     "click",
     "plotly",
-    "sqlalchemy",
-    "dash",
-    "dash-calendar-timeline"
+    "matplotlib",
+    "matplotlib-inline"
 ]
 
 [project.scripts]

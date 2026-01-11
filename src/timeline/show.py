@@ -44,7 +44,7 @@ def run_app():
     # this initialises the data
     e_df, t_df = get_data()
     # this navigates the dates
-    events_slice = get_events_slice(e_df, def_start_year, def_end_year)
+    events_slice = get_events_slice(e_df, def_start_frame, def_end_frame)
     timeline_names = events_slice['timeline'].unique()
 
     # to allow for distribution of horizontal timelines, this
@@ -73,5 +73,16 @@ def run_app():
             # get the associated events data
             events = events_slice.query(f"timeline == '{t}'")
             pp.pprint(events)
-
+            pp.pprint(timeline_data)
+            import pdb; pdb.set_trace()
+            if timeline_data['line_type'][t] == 'continuous':
+                points = events.index.values
+                plt.plot(1, points, marker='o', linestyle='-')
+                for label in events['label']:
+                    plt.annotate(
+                        f'{label}',
+                        (1, points),
+                        textcoords="offset points",
+                        xytext=(0, 10),
+                        ha='center')
     plt.show()
