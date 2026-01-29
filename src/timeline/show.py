@@ -1,7 +1,10 @@
 import matplotlib.pyplot as plt
-import sqlite3
 import pandas as pd
 import pprint as pp
+from db.database import engine
+from sqlalchemy import select
+from db.models import TimelineGroup, Timeline
+
 
 def_start_frame = 1500
 def_end_frame = 1526
@@ -11,29 +14,27 @@ conn = None
 
 
 def get_data():
-    conn = sqlite3.connect('database/timelines.db')
-    query = """SELECT timeline, label, start, end
-            FROM events
-            """
-    # set up the dataframe the
+
+    stmt = select(TimelineGroup).order_by("order")
+    # set up the dataframe for timeline groups
+
     e_df = pd.read_sql_query(
-        query,
-        conn,
+        stmt,
+        con=engine,
+        index_col='id'
+    )
+    # set up the dataframe for timelines
+    stmt = select(Timeline, TimelineGroup.label).where(
+        TimelineGroup.id == Timeline.parent)
+    t_df = pd.read_sql_query(
+        stmt,
+        con=engine,
         index_col='start'
     )
-
-    q = """Select timeline, label, colour, requested_order, line_type
-        from timelines
-        order by requested_order"""
-    t_df = pd.read_sql_query(
-        q,
-        conn,
-        index_col='timeline'
-    )
-    return e_df, t_df
+    return t_df, e_df
 
 
-def get_events_slice(df, s, e):
+def get_timelines_slice(df, s, e):
     # get all the events columns that intersect our time-slice
     q = f"start > '{s}' and start <= '{e}'"
     slice_df = df.query(q)
@@ -44,7 +45,8 @@ def run_app():
     # this initialises the data
     e_df, t_df = get_data()
     # this navigates the dates
-    events_slice = get_events_slice(e_df, def_start_frame, def_end_frame)
+    events_slice = get_timelines_slice(e_df, def_start_frame, def_end_frame)
+    print(events_slice)
     timeline_names = events_slice['timeline'].unique()
 
     # to allow for distribution of horizontal timelines, this
@@ -74,7 +76,7 @@ def run_app():
             events = events_slice.query(f"timeline == '{t}'")
             pp.pprint(events)
             pp.pprint(timeline_data)
-            import pdb; pdb.set_trace()
+            #  import pdb; pdb.set_trace()
             if timeline_data['line_type'][t] == 'continuous':
                 points = events.index.values
                 plt.plot(1, points, marker='o', linestyle='-')

@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import TimelineGroup, Timeline
+from .database import SessionLocal
+from .models import TimelineGroup, Timeline
 import csv
 
 
 def import_csv_data():
     try:
         db = SessionLocal()
-        db.commit()
         # build the data from ground up
         with open('data/timelines.csv') as csvfile:
             children = dict()
@@ -52,15 +51,6 @@ def import_csv_data():
         db.rollback()
     finally:
         db.close()
-    return
-
-
-def get_tl_groups():
-
-    return
-
-
-def get_timelines():
     return
 
 

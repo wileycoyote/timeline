@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy import ForeignKey, Text
 from sqlalchemy.orm import relationship
 
-from database import Base
+from .database import Base
 
 
 # one to many relationship between timeline groups and events

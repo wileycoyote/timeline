@@ -9,7 +9,9 @@ dependencies=[
     "click",
     "plotly",
     "matplotlib",
-    "matplotlib-inline"
+    "matplotlib-inline",
+    "sqlalchemy",
+    "pandas"
 ]
 
 [project.scripts]
