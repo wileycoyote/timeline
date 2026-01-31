@@ -81,6 +81,7 @@ def run_app():
                 points = events.index.values
                 plt.plot(1, points, marker='o', linestyle='-')
                 for label in events['label']:
+                    # need to set up dates as DateTime
                     plt.annotate(
                         f'{label}',
                         (1, points),
