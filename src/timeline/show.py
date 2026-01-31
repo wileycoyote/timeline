@@ -18,15 +18,15 @@ def get_data():
     stmt = select(TimelineGroup).order_by("order")
     # set up the dataframe for timeline groups
 
-    e_df = pd.read_sql_query(
+    t_df = pd.read_sql_query(
         stmt,
         con=engine,
         index_col='id'
     )
     # set up the dataframe for timelines
-    stmt = select(Timeline, TimelineGroup.label).where(
+    stmt = select(Timeline, TimelineGroup.label.label("timeline")).where(
         TimelineGroup.id == Timeline.parent)
-    t_df = pd.read_sql_query(
+    e_df = pd.read_sql_query(
         stmt,
         con=engine,
         index_col='start'
@@ -43,10 +43,10 @@ def get_timelines_slice(df, s, e):
 
 def run_app():
     # this initialises the data
-    e_df, t_df = get_data()
+    # import pdb; pdb.set_trace()
+    t_df, e_df = get_data()
     # this navigates the dates
     events_slice = get_timelines_slice(e_df, def_start_frame, def_end_frame)
-    print(events_slice)
     timeline_names = events_slice['timeline'].unique()
 
     # to allow for distribution of horizontal timelines, this
@@ -70,14 +70,14 @@ def run_app():
         for t in timeline_names:
             print(t)
             # get the timeline display data
-            timeline_data = t_df.query(f"timeline == '{t}'")
+            timeline_data = t_df.query(f"label  == '{t}'")
             pp.pprint(timeline_data)
             # get the associated events data
             events = events_slice.query(f"timeline == '{t}'")
             pp.pprint(events)
             pp.pprint(timeline_data)
-            #  import pdb; pdb.set_trace()
-            if timeline_data['line_type'][t] == 'continuous':
+            import pdb; pdb.set_trace()
+            if timeline_data['line_type'].item() == 'continuous':
                 points = events.index.values
                 plt.plot(1, points, marker='o', linestyle='-')
                 for label in events['label']:
