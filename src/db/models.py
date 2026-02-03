@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime
 
 from sqlalchemy import ForeignKey, Text
 from sqlalchemy.orm import relationship
@@ -27,8 +27,8 @@ class Timeline(Base):
     id = Column(Integer, primary_key=True, index=True)
     label = Column('label', String)
     notes = Column('notes', Text)
-    start = Column('start', String)
-    end = Column('end', String)
+    start = Column('start', DateTime)
+    end = Column('end', DateTime)
     parent = Column(
         Integer,
         ForeignKey("timelinegroups.id")

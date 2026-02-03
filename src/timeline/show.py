@@ -17,7 +17,7 @@ def get_data():
 
     stmt = select(TimelineGroup).order_by("order")
     # set up the dataframe for timeline groups
-
+    import pdb; pdb.set_trace()
     t_df = pd.read_sql_query(
         stmt,
         con=engine,
@@ -68,15 +68,14 @@ def run_app():
 
         # do the timelines
         for t in timeline_names:
-            print(t)
             # get the timeline display data
+            import pdb; pdb.set_trace()
             timeline_data = t_df.query(f"label  == '{t}'")
             pp.pprint(timeline_data)
             # get the associated events data
             events = events_slice.query(f"timeline == '{t}'")
             pp.pprint(events)
             pp.pprint(timeline_data)
-            import pdb; pdb.set_trace()
             if timeline_data['line_type'].item() == 'continuous':
                 points = events.index.values
                 plt.plot(1, points, marker='o', linestyle='-')
