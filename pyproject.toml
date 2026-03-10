@@ -11,7 +11,10 @@ dependencies=[
     "matplotlib",
     "matplotlib-inline",
     "sqlalchemy",
-    "pandas"
+    "pandas",
+    "pep8",
+    "np",
+    "autopep8"
 ]
 
 [project.scripts]

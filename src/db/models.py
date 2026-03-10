@@ -13,9 +13,7 @@ class TimelineGroup(Base):
     id = Column(Integer, primary_key=True, index=True)
     label = Column('label', String)
     colour = Column('colour', String)
-    order = Column('order', Integer)
-    # broken, continuous line, band
-    line_type = Column('line_type', String)
+    level = Column('level', Integer)
     notes = Column('notes', Text)
     timelines = relationship("Timeline")
 

@@ -1,4 +1,21 @@
+
+
+
+
+
+
+
+
+
+
+
 import matplotlib.pyplot as plt
+
+
+
+
+kkkk
+
 import pandas as pd
 import pprint as pp
 from db.database import engine
@@ -38,11 +55,7 @@ def get_data():
 def get_timelines_slice(df, s, e):
     # get all the events columns that intersect our time-slice
     #
-    # This would be better using df.query() but I can't work out why
-    # I couldn't get it to work
-    pp.pprint(s)
-    pp.pprint(e)
-    slice_df = df.loc[(df['start'] >= s) & (df['start'] < e)]
+    slice_df = df.query('start >= @s & start < @e')
     return slice_df
 
 
@@ -52,12 +65,19 @@ def run_app():
     # this navigates the dates
     events_slice = get_timelines_slice(e_df, def_start_frame, def_end_frame)
     pp.pprint(events_slice)
+    pp.pprint(t_df)
     timeline_names = events_slice['timeline'].unique()
 
     # to allow for distribution of horizontal timelines, this
     with plt.style.context('Solarize_Light2'):
         fig, ax = plt.subplots(figsize=(20, 14), layout="constrained")
         ax.set(title="Timelines for 1300 to 1600")
+        #
+        # The baseline.
+        ax.axhline(0, c="black")
+        #
+        # The markers on the baseline.
+        ax.plot(dates, np.zeros_like(dates), "ko", mfc="white")
         #
         # set the top axis in years
         # set default values for now
@@ -75,12 +95,11 @@ def run_app():
         # do the timelines
         for t in timeline_names:
             # get the timeline display data
-            timeline_data = t_df.query(f"label  == '{t}'")
+            timeline_data = t_df.query("label  == @t")
             # get the associated events data
-            events = events_slice.query(f"timeline == '{t}'")
-            if timeline_data['line_type'].item() == 'continuous':
+            events = events_slice.query("timeline == @t")
+            level = timeline_data['level'].item()
                 points = events['start'].values
-#                 import pdb; pdb.set_trace()
                 x = np.arange(0, len(points), 1)
                 plt.plot(x, points, marker='o', linestyle='-')
                 for label in events['label']:

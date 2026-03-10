@@ -29,15 +29,13 @@ def import_csv_data():
                 print(', '.join(t))
                 key = t[0]
                 label = t[1]
-                order = t[2]
-                line_type = t[3]
-                colour = t[4]
-                notes = t[5]
+                level = t[2]
+                colour = t[3]
+                notes = t[4]
                 group = TimelineGroup(
                     label=label,
                     colour=colour,
-                    order=order,
-                    line_type=line_type,
+                    level=level,
                     notes=notes,
                 )
                 db.add(group)
