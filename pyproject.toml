@@ -18,6 +18,6 @@ dependencies=[
 ]
 
 [project.scripts]
-timeline = "timeline.show:run_app"
+timeline = "timeline.plot:run_app"
 create_database = "db.create_tables:create_tables"
 add_csv_data = "db.crud_operations:import_csv_data"
