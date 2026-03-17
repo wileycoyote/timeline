@@ -3,7 +3,6 @@
 from .database import SessionLocal
 from .models import TimelineGroup, Timeline
 import csv
-from datetime import datetime as dt
 
 
 def import_csv_data():
@@ -41,12 +40,10 @@ def import_csv_data():
                 db.add(group)
                 db.commit()
                 for t in children[key]:
-                    start = dt.fromisoformat(t[2])
-                    end = dt.fromisoformat(t[3])
                     tl = Timeline(
                         label=t[1],
-                        start=start,
-                        end=end,
+                        start=t[2],
+                        end=t[3],
                         notes=t[4],
                         parent=group.id
                     )

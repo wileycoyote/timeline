@@ -20,11 +20,12 @@ conn = None
 def get_data():
 
     stmt = select(TimelineGroup)
+    print(stmt)
     # set up the dataframe for timeline groups
     t_df = pd.read_sql_query(
         stmt,
         con=engine,
-        index_col='id'
+        index_col='id',
     )
     # set up the dataframe for timelines
     stmt = select(Timeline, TimelineGroup).where(
@@ -34,6 +35,8 @@ def get_data():
             stmt,
             con=engine,
         )
+    for val in e_df['start'].values:
+        val = dt.datetime(val)
     return t_df, e_df
 
 
@@ -50,7 +53,9 @@ def run_app():
     # import pdb;pdb.set_trace()
     # this navigates the dates
     events_slice = get_timelines_slice(e_df, def_start_frame, def_end_frame)
-    dates = events_slice['start']
+    dates = []
+    for d in events_slice['start'].values:
+        dates.append(d.strftime("%Y"))
     # to allow for distribution of horizontal timelines, this
     with plt.style.context('Solarize_Light2'):
         fig, ax = plt.subplots(figsize=(20, 14), layout="constrained")
@@ -60,8 +65,7 @@ def run_app():
         # ax.axhline(0, c="black")
         #
         # The markers on the baseline.
-        import pdb; pdb.set_trace()
-        ax.plot(dates.Date, np.zeros_like(dates), "ko", mfc="white")
+        ax.plot(dates, np.zeros_like(dates), "ko", mfc="white")
         #
         # set the top axis in years
         # set default values for now
@@ -79,17 +83,19 @@ def run_app():
         ax.set_ylim(-7, 7)
         # import pdb; pdb.set_trace()
         # annotate the points on the horizontal line
+        import pdb; pdb.set_trace()
         for e, event in events_slice.iterrows():
             pp.pprint(event)
             level = event['level']
-            dt = event['start']
+            d = dt.fromisoformat(event['start'])
+            print(d)
             label = event['label']
             colour = event['colour']
             plt.annotate(
                 label,
-                xy=(dt,
+                xy=(d,
                     0.1 if level > 0 else -0.1),
-                xytext=(dt, level),
+                xytext=(d, level),
                 textcoords="offset points",
                 arrowprops=dict(
                     arrowstyle="-",
@@ -99,5 +105,5 @@ def run_app():
             )
         ax.xaxis.set(
             major_locator=mdates.YearLocator(),
-            major_formatter=mdates.DateFormatter("%Y"))
+            major_formatter=mdates.DateFormatter("%Y%m%d"))
     plt.show()
