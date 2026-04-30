@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 
 import pandas as pd
-import pprint as pp
 from db.database import engine
 from sqlalchemy import select
 from db.models import TimelineGroup, Timeline
@@ -10,8 +9,11 @@ import pandas_log
 import numpy as np
 import matplotlib.dates as mdates
 
-def_start_frame = dt.fromisoformat("1500-01-01")
-def_end_frame = dt.fromisoformat("1526-01-01")
+init_start_frame = "1500-01-01"
+init_end_frame = "1526-01-01"
+
+def_start_frame = dt.strptime(init_start_frame, "%Y-%m-%d")
+def_end_frame = dt.strptime(init_end_frame, "%Y-%m-%d")
 range_units = 54
 
 conn = None
@@ -20,7 +22,6 @@ conn = None
 def get_data():
 
     stmt = select(TimelineGroup)
-    print(stmt)
     # set up the dataframe for timeline groups
     t_df = pd.read_sql_query(
         stmt,
@@ -35,8 +36,6 @@ def get_data():
             stmt,
             con=engine,
         )
-    for val in e_df['start'].values:
-        val = dt.datetime(val)
     return t_df, e_df
 
 
@@ -52,58 +51,68 @@ def run_app():
     t_df, e_df = get_data()
     # import pdb;pdb.set_trace()
     # this navigates the dates
-    events_slice = get_timelines_slice(e_df, def_start_frame, def_end_frame)
-    dates = []
-    for d in events_slice['start'].values:
-        dates.append(d.strftime("%Y"))
+    events_slice = get_timelines_slice(e_df, init_start_frame, init_end_frame)
+    # import pdb; pdb.set_trace()
+    dates = [
+        dt.strptime(d, "%Y-%m-%d")
+        for d in events_slice['start'].values
+    ]
+    levels = [
+        x for x in events_slice['level'].values
+    ]
+
     # to allow for distribution of horizontal timelines, this
     with plt.style.context('Solarize_Light2'):
-        fig, ax = plt.subplots(figsize=(20, 14), layout="constrained")
+        fig, ax = plt.subplots(figsize=(18, 9))
         ax.set(title="Timelines for 1300 to 1600")
         #
         # The baseline.
-        # ax.axhline(0, c="black")
+        ax.axhline(0, c="black")
+        ax.vlines(dates, 0, levels)
         #
         # The markers on the baseline.
-        ax.plot(dates, np.zeros_like(dates), "ko", mfc="white")
+        ax.plot(
+            dates,
+            np.zeros_like(dates),
+            "-o",
+            color="black",
+            mfc="white"
+        )
         #
         # set the top axis in years
         # set default values for now
-        year_start = def_start_frame.year
-        year_end = def_end_frame.year
-        years = [str(x) for x in range(year_start, year_end, 1)]
-        posn = [x for x in range(2, range_units, 2)]
-        # Remove the y-axis and some spines.
-        ax.yaxis.set_visible(False)
-        ax.spines[["left", "top", "bottom", "right"]].set_visible(False)
-        ax.spines[["bottom"]].set_position(("axes", 0.5))
-        # ax.xaxis.tick_top()
-        ax.set_xticks(posn, years)
         ax.margins(y=0.2)
         ax.set_ylim(-7, 7)
         # import pdb; pdb.set_trace()
         # annotate the points on the horizontal line
-        import pdb; pdb.set_trace()
         for e, event in events_slice.iterrows():
-            pp.pprint(event)
             level = event['level']
-            d = dt.fromisoformat(event['start'])
-            print(d)
+            d = dt.strptime(event['start'], "%Y-%m-%d")
             label = event['label']
             colour = event['colour']
-            plt.annotate(
+            ax.annotate(
                 label,
                 xy=(d,
-                    0.1 if level > 0 else -0.1),
-                xytext=(d, level),
+                    level),
+                xytext=(-3, np.sign(level)*3),
+                verticalalignment="bottom" if level > 0 else "top",
                 textcoords="offset points",
                 arrowprops=dict(
                     arrowstyle="-",
                     color=colour,
                     linewidth=0.8),
-                ha='center',
+                bbox=dict(
+                     boxstyle='square',
+                     pad=0,
+                     lw=0,
+                     fc=(1, 1, 1, 0.7)
+                 )
             )
+        ax.yaxis.set_visible(False)
+        ax.spines[["left", "top", "right"]].set_visible(False)
+
         ax.xaxis.set(
             major_locator=mdates.YearLocator(),
-            major_formatter=mdates.DateFormatter("%Y%m%d"))
+            major_formatter=mdates.DateFormatter("%Y"))
+        ax.grid(False)
     plt.show()
