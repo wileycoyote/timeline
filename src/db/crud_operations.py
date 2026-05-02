@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # from sqlalchemy.orm import Session
 from .database import SessionLocal
-from .models import TimelineGroup, Timeline
+from .models import EventGroup, Event
 import csv
 
 
@@ -22,7 +22,7 @@ def import_csv_data():
                 if key not in children:
                     children[key] = []
                 children[key].append(t)
-        with open('data/timeline_groups.csv') as csvfile:
+        with open('data/event_groups.csv') as csvfile:
             timeline_gs = csv.reader(csvfile, delimiter=',', quotechar='|')
             for t in timeline_gs:
                 print(', '.join(t))
@@ -31,7 +31,7 @@ def import_csv_data():
                 level = t[2]
                 colour = t[3]
                 notes = t[4]
-                group = TimelineGroup(
+                group = EventGroup(
                     label=label,
                     colour=colour,
                     level=level,
@@ -40,10 +40,9 @@ def import_csv_data():
                 db.add(group)
                 db.commit()
                 for t in children[key]:
-                    tl = Timeline(
+                    tl = Event(
                         label=t[1],
-                        start=t[2],
-                        end=t[3],
+                        date=t[2],
                         notes=t[4],
                         parent=group.id
                     )

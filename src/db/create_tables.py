@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from .database import engine, Base
-from .models import TimelineGroup, Timeline
+from .models import EventGroup, Event
 
 
 def create_tables():

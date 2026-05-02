@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from db.database import engine
 from sqlalchemy import select
-from db.models import TimelineGroup, Timeline
+from db.models import EventGroup, Event
 from datetime import datetime as dt
 import pandas_log
 import numpy as np
@@ -21,7 +21,7 @@ conn = None
 
 def get_data():
 
-    stmt = select(TimelineGroup)
+    stmt = select(EventGroup)
     # set up the dataframe for timeline groups
     t_df = pd.read_sql_query(
         stmt,
@@ -29,8 +29,8 @@ def get_data():
         index_col='id',
     )
     # set up the dataframe for timelines
-    stmt = select(Timeline, TimelineGroup).where(
-        TimelineGroup.id == Timeline.parent)
+    stmt = select(Event, EventGroup).where(
+        EventGroup.id == Event.parent)
     with pandas_log.enable():
         e_df = pd.read_sql_query(
             stmt,
@@ -39,36 +39,29 @@ def get_data():
     return t_df, e_df
 
 
-def get_timelines_slice(df, s, e):
+def get_events_slice(df, s, e):
     # get all the events columns that intersect our time-slice
     #
     slice_df = df.query('start >= @s & start < @e')
     return slice_df
 
 
-def run_app():
-    # this initialises the data
-    t_df, e_df = get_data()
-    # import pdb;pdb.set_trace()
-    # this navigates the dates
-    events_slice = get_timelines_slice(e_df, init_start_frame, init_end_frame)
-    # import pdb; pdb.set_trace()
-    dates = [
-        dt.strptime(d, "%Y-%m-%d")
-        for d in events_slice['start'].values
-    ]
-    levels = [
-        x for x in events_slice['level'].values
-    ]
+def display_slice(dates, levels, labels, colours):
 
     # to allow for distribution of horizontal timelines, this
     with plt.style.context('Solarize_Light2'):
+
         fig, ax = plt.subplots(figsize=(18, 9))
         ax.set(title="Timelines for 1300 to 1600")
         #
         # The baseline.
         ax.axhline(0, c="black")
-        ax.vlines(dates, 0, levels)
+        ax.vlines(
+            dates,
+            0,
+            levels,
+            color=colours
+        )
         #
         # The markers on the baseline.
         ax.plot(
@@ -85,11 +78,7 @@ def run_app():
         ax.set_ylim(-7, 7)
         # import pdb; pdb.set_trace()
         # annotate the points on the horizontal line
-        for e, event in events_slice.iterrows():
-            level = event['level']
-            d = dt.strptime(event['start'], "%Y-%m-%d")
-            label = event['label']
-            colour = event['colour']
+        for d, level, colour, label in (dates, levels, colours, labels):
             ax.annotate(
                 label,
                 xy=(d,
@@ -100,13 +89,14 @@ def run_app():
                 arrowprops=dict(
                     arrowstyle="-",
                     color=colour,
-                    linewidth=0.8),
+                    linewidth=2.0),
                 bbox=dict(
                      boxstyle='square',
                      pad=0,
                      lw=0,
                      fc=(1, 1, 1, 0.7)
-                 )
+                 ),
+                rotation=45
             )
         ax.yaxis.set_visible(False)
         ax.spines[["left", "top", "right"]].set_visible(False)
@@ -116,3 +106,25 @@ def run_app():
             major_formatter=mdates.DateFormatter("%Y"))
         ax.grid(False)
     plt.show()
+
+
+def run_app():
+    # this initialises the data
+    t_df, e_df = get_data()
+    # import pdb;pdb.set_trace()
+    # this navigates the dates
+    events_slice = get_events_slice(e_df, init_start_frame, init_end_frame)
+    dates = [
+        dt.strptime(d, "%Y-%m-%d")
+        for d in events_slice['date'].values
+    ]
+    levels = [
+        x for x in events_slice['level'].values
+    ]
+    colours = [
+        x for x in events_slice['colour'].values
+    ]
+    labels = [
+        x for x in events_slice['colour'].values
+    ]
+    display_slice(dates, levels, labels, colours)

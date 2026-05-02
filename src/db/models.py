@@ -7,27 +7,26 @@ from .database import Base
 
 
 # one to many relationship between timeline groups and events
-class TimelineGroup(Base):
-    __tablename__ = "timelinegroups"
+class EventGroup(Base):
+    __tablename__ = "eventgroups"
 
     id = Column(Integer, primary_key=True, index=True)
     label = Column('label', String)
     colour = Column('colour', String)
     level = Column('level', Integer)
     notes = Column('notes', Text)
-    timelines = relationship("Timeline")
+    events = relationship("Event")
 
 
 # granularity of time is one day
-class Timeline(Base):
-    __tablename__ = "timelines"
+class Event(Base):
+    __tablename__ = "events"
 
     id = Column(Integer, primary_key=True, index=True)
     label = Column('label', String)
     notes = Column('notes', Text)
-    start = Column('start', Text)
-    end = Column('end', Text)
+    date = Column('date', Text)
     parent = Column(
         Integer,
-        ForeignKey("timelinegroups.id")
+        ForeignKey("eventgroups.id")
     )
