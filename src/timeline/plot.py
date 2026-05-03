@@ -42,11 +42,11 @@ def get_data():
 def get_events_slice(df, s, e):
     # get all the events columns that intersect our time-slice
     #
-    slice_df = df.query('start >= @s & start < @e')
+    slice_df = df.query('date >= @s & date < @e')
     return slice_df
 
 
-def display_slice(dates, levels, labels, colours):
+def display_slice(dates, levels, labels, colours, notes):
 
     # to allow for distribution of horizontal timelines, this
     with plt.style.context('Solarize_Light2'):
@@ -76,11 +76,15 @@ def display_slice(dates, levels, labels, colours):
         # set default values for now
         ax.margins(y=0.2)
         ax.set_ylim(-7, 7)
-        # import pdb; pdb.set_trace()
         # annotate the points on the horizontal line
-        for d, level, colour, label in (dates, levels, colours, labels):
+        for d, level, colour, label, note in \
+                zip(dates, levels, colours, labels, notes):
+            if note == "":
+                annotate_label = label
+            else:
+                annotate_label = f"{label} ({note})"
             ax.annotate(
-                label,
+                annotate_label,
                 xy=(d,
                     level),
                 xytext=(-3, np.sign(level)*3),
@@ -111,7 +115,6 @@ def display_slice(dates, levels, labels, colours):
 def run_app():
     # this initialises the data
     t_df, e_df = get_data()
-    # import pdb;pdb.set_trace()
     # this navigates the dates
     events_slice = get_events_slice(e_df, init_start_frame, init_end_frame)
     dates = [
@@ -125,6 +128,9 @@ def run_app():
         x for x in events_slice['colour'].values
     ]
     labels = [
-        x for x in events_slice['colour'].values
+        x for x in events_slice['label'].values
     ]
-    display_slice(dates, levels, labels, colours)
+    notes = [
+        x for x in events_slice['notes'].values
+    ]
+    display_slice(dates, levels, labels, colours, notes)

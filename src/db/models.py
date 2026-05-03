@@ -24,8 +24,8 @@ class Event(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     label = Column('label', String)
-    notes = Column('notes', Text)
     date = Column('date', Text)
+    notes = Column('notes', Text)
     parent = Column(
         Integer,
         ForeignKey("eventgroups.id")

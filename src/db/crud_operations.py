@@ -9,7 +9,7 @@ def import_csv_data():
     try:
         db = SessionLocal()
         # build the data from ground up
-        with open('data/timelines.csv') as csvfile:
+        with open('data/events.csv') as csvfile:
             children = dict()
             timelines = csv.reader(
                 csvfile,
@@ -25,7 +25,6 @@ def import_csv_data():
         with open('data/event_groups.csv') as csvfile:
             timeline_gs = csv.reader(csvfile, delimiter=',', quotechar='|')
             for t in timeline_gs:
-                print(', '.join(t))
                 key = t[0]
                 label = t[1]
                 level = t[2]
@@ -43,7 +42,7 @@ def import_csv_data():
                     tl = Event(
                         label=t[1],
                         date=t[2],
-                        notes=t[4],
+                        notes=t[3],
                         parent=group.id
                     )
                     db.add(tl)
