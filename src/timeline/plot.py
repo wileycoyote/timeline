@@ -19,54 +19,97 @@ range_units = 54
 conn = None
 
 
-def get_data():
+class Timeline(object):
 
-    stmt = select(EventGroup)
-    # set up the dataframe for timeline groups
-    t_df = pd.read_sql_query(
-        stmt,
-        con=engine,
-        index_col='id',
-    )
-    # set up the dataframe for timelines
-    stmt = select(Event, EventGroup).where(
-        EventGroup.id == Event.parent)
-    with pandas_log.enable():
-        e_df = pd.read_sql_query(
+    def __init__(self, s, e, ax):
+        self.ax = ax
+        self.date_start_frame = dt.strptime(s, "%Y-%m-%d")
+        self.date_end_frame = dt.strptime(e, "%Y-%m-%d")
+        self.get_data()
+        self.display_slice()
+
+    def get_data(self):
+        stmt = select(EventGroup)
+        # set up the dataframe for timeline groups
+        self.events_group = pd.read_sql_query(
             stmt,
             con=engine,
+            index_col='id',
         )
-    return t_df, e_df
+        # set up the dataframe for timelines
+        stmt = select(Event, EventGroup).where(
+            EventGroup.id == Event.parent)
+        with pandas_log.enable():
+            self.events = pd.read_sql_query(
+                stmt,
+                con=engine,
+            )
 
+    def increment_frame_years(self):
+        new_date = np.datetime64(self.date_start_frame) +\
+                                    np.timedelta64(1, 'Y')
+        self.date_start_frame = new_date
+        new_date = np.datetime64(self.date_start_frame) +\
+            np.timedelta64(1, 'Y')
+        self.date_end_frame = new_date
 
-def get_events_slice(df, s, e):
-    # get all the events columns that intersect our time-slice
-    #
-    slice_df = df.query('date >= @s & date < @e')
-    return slice_df
+    def decrement_frame_years(self):
+        new_date = np.datetime64(self.date_start_frame) -\
+                                    np.timedelta64(1, 'Y')
+        self.date_start_frame = new_date
+        new_date = np.datetime64(self.date_start_frame) -\
+            np.timedelta64(1, 'Y')
+        self.date_end_frame = new_date
 
+    def on_scroll(self, event):
+        print(event.button, event.step)
+        if event.button == 'up':
+            self.increment_frame_years()
+        elif event.button == 'down':
+            self.decrement_frame_years()
+        self.display_slice()
 
-def display_slice(dates, levels, labels, colours, notes):
+    def get_events_slice(self):
+        s = self.date_start_frame
+        e = self.date_end_frame
+        # get all the events columns that intersect our time-slice
+        #
+        events_slice = self.events.query('date >= @s & date < @e')
+        self.dates = [
+            dt.strptime(d, "%Y-%m-%d")
+            for d in events_slice['date'].values
+        ]
+        self.levels = [
+            x for x in events_slice['level'].values
+        ]
+        self.colours = [
+            x for x in events_slice['colour'].values
+        ]
+        self.labels = [
+            x for x in events_slice['label'].values
+        ]
+        self.ext_labels = [
+            x for x in events_slice['ext_labels'].values
+        ]
 
-    # to allow for distribution of horizontal timelines, this
-    with plt.style.context('Solarize_Light2'):
-
-        fig, ax = plt.subplots(figsize=(18, 9))
-        ax.set(title="Timelines for 1300 to 1600")
+    def display_slice(self):
         #
         # The baseline.
+        self.get_events_slice()
+        ax = self.ax
+        ax.set(title="Events for 1300 to 1600")
         ax.axhline(0, c="black")
         ax.vlines(
-            dates,
+            self.dates,
             0,
-            levels,
-            color=colours
+            self.levels,
+            color=self.colours
         )
         #
         # The markers on the baseline.
         ax.plot(
-            dates,
-            np.zeros_like(dates),
+            self.dates,
+            np.zeros_like(self.dates),
             "-o",
             color="black",
             mfc="white"
@@ -78,7 +121,8 @@ def display_slice(dates, levels, labels, colours, notes):
         ax.set_ylim(-7, 7)
         # annotate the points on the horizontal line
         for d, level, colour, label, note in \
-                zip(dates, levels, colours, labels, notes):
+                zip(self.dates, self.levels, self.colours,
+                    self.labels, self.notes):
             if note == "":
                 annotate_label = label
             else:
@@ -95,11 +139,11 @@ def display_slice(dates, levels, labels, colours, notes):
                     color=colour,
                     linewidth=2.0),
                 bbox=dict(
-                     boxstyle='square',
-                     pad=0,
-                     lw=0,
-                     fc=(1, 1, 1, 0.7)
-                 ),
+                        boxstyle='square',
+                        pad=0,
+                        lw=0,
+                        fc=(1, 1, 1, 0.7)
+                    ),
                 rotation=45
             )
         ax.yaxis.set_visible(False)
@@ -109,28 +153,15 @@ def display_slice(dates, levels, labels, colours, notes):
             major_locator=mdates.YearLocator(),
             major_formatter=mdates.DateFormatter("%Y"))
         ax.grid(False)
-    plt.show()
 
 
 def run_app():
     # this initialises the data
-    t_df, e_df = get_data()
     # this navigates the dates
-    events_slice = get_events_slice(e_df, init_start_frame, init_end_frame)
-    dates = [
-        dt.strptime(d, "%Y-%m-%d")
-        for d in events_slice['date'].values
-    ]
-    levels = [
-        x for x in events_slice['level'].values
-    ]
-    colours = [
-        x for x in events_slice['colour'].values
-    ]
-    labels = [
-        x for x in events_slice['label'].values
-    ]
-    notes = [
-        x for x in events_slice['notes'].values
-    ]
-    display_slice(dates, levels, labels, colours, notes)
+    # to allow for distribution of horizontal timelines, this
+    with plt.style.context('Solarize_Light2'):
+
+        fig, ax = plt.subplots(figsize=(18, 9))
+        t = Timeline(init_start_frame, init_end_frame, ax)
+        fig.canvas.mpl_connect('key_press_event', t.on_scroll)
+        plt.show()
