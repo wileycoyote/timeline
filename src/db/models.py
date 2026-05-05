@@ -11,10 +11,8 @@ class EventGroup(Base):
     __tablename__ = "eventgroups"
 
     id = Column(Integer, primary_key=True, index=True)
-    label = Column('label', String)
     colour = Column('colour', String)
     level = Column('level', Integer)
-    notes = Column('notes', Text)
     events = relationship("Event")
 
 
@@ -25,7 +23,7 @@ class Event(Base):
     id = Column(Integer, primary_key=True, index=True)
     label = Column('label', String)
     date = Column('date', Text)
-    notes = Column('notes', Text)
+    inparens = Column('inparens', Text)
     parent = Column(
         Integer,
         ForeignKey("eventgroups.id")

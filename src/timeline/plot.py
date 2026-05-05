@@ -9,22 +9,28 @@ import pandas_log
 import numpy as np
 import matplotlib.dates as mdates
 
-init_start_frame = "1500-01-01"
-init_end_frame = "1526-01-01"
+init_start_frame = (1500, 1, 1)
+init_end_frame = (1526, 1, 1)
 
-def_start_frame = dt.strptime(init_start_frame, "%Y-%m-%d")
-def_end_frame = dt.strptime(init_end_frame, "%Y-%m-%d")
 range_units = 54
 
 conn = None
+
+
+def dt_datetime(d):
+    return dt.datetime(d[0], d[1], d[2])
+
+
+def_start_frame = dt_datetime(init_start_frame)
+def_end_frame = dt_datetime(init_end_frame)
 
 
 class Timeline(object):
 
     def __init__(self, s, e, ax):
         self.ax = ax
-        self.date_start_frame = dt.strptime(s, "%Y-%m-%d")
-        self.date_end_frame = dt.strptime(e, "%Y-%m-%d")
+        self.date_start_frame = s
+        self.date_end_frame = e
         self.get_data()
         self.display_slice()
 
@@ -46,32 +52,26 @@ class Timeline(object):
             )
 
     def increment_frame_years(self):
-        new_date = np.datetime64(self.date_start_frame) +\
-                                    np.timedelta64(1, 'Y')
-        self.date_start_frame = new_date
-        new_date = np.datetime64(self.date_start_frame) +\
-            np.timedelta64(1, 'Y')
-        self.date_end_frame = new_date
+        timedelta = dt.timedelta(days=365)
+        self.date_start_frame = self.date_start_frame + timedelta
+        self.date_end_frame = self.date_end_frame + timedelta
 
     def decrement_frame_years(self):
-        new_date = np.datetime64(self.date_start_frame) -\
-                                    np.timedelta64(1, 'Y')
-        self.date_start_frame = new_date
-        new_date = np.datetime64(self.date_start_frame) -\
-            np.timedelta64(1, 'Y')
-        self.date_end_frame = new_date
+        timedelta = dt.timedelta(days=365)
+        self.date_start_frame = self.date_start_frame - timedelta
+        self.date_end_frame = self.date_end_frame - timedelta
 
     def on_scroll(self, event):
-        print(event.button, event.step)
-        if event.button == 'up':
+        import pdb; pdb.set_trace()
+        if event.key == 'right':
             self.increment_frame_years()
-        elif event.button == 'down':
+        elif event.key == 'left':
             self.decrement_frame_years()
         self.display_slice()
 
     def get_events_slice(self):
-        s = self.date_start_frame
-        e = self.date_end_frame
+        s = str(self.date_start_frame.year)
+        e = str(self.date_end_frame.year)
         # get all the events columns that intersect our time-slice
         #
         events_slice = self.events.query('date >= @s & date < @e')
@@ -88,8 +88,8 @@ class Timeline(object):
         self.labels = [
             x for x in events_slice['label'].values
         ]
-        self.ext_labels = [
-            x for x in events_slice['ext_labels'].values
+        self.inparens = [
+            x for x in events_slice['inparens'].values
         ]
 
     def display_slice(self):
@@ -120,13 +120,13 @@ class Timeline(object):
         ax.margins(y=0.2)
         ax.set_ylim(-7, 7)
         # annotate the points on the horizontal line
-        for d, level, colour, label, note in \
+        for d, level, colour, label, inparens in \
                 zip(self.dates, self.levels, self.colours,
-                    self.labels, self.notes):
-            if note == "":
+                    self.labels, self.inparens):
+            if inparens == "":
                 annotate_label = label
             else:
-                annotate_label = f"{label} ({note})"
+                annotate_label = f"{label} ({inparens})"
             ax.annotate(
                 annotate_label,
                 xy=(d,

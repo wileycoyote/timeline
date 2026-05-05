@@ -26,15 +26,11 @@ def import_csv_data():
             timeline_gs = csv.reader(csvfile, delimiter=',', quotechar='|')
             for t in timeline_gs:
                 key = t[0]
-                label = t[1]
-                level = t[2]
-                colour = t[3]
-                notes = t[4]
+                level = t[1]
+                colour = t[2]
                 group = EventGroup(
-                    label=label,
                     colour=colour,
                     level=level,
-                    notes=notes,
                 )
                 db.add(group)
                 db.commit()
@@ -42,7 +38,7 @@ def import_csv_data():
                     tl = Event(
                         label=t[1],
                         date=t[2],
-                        notes=t[3],
+                        inparens=t[3],
                         parent=group.id
                     )
                     db.add(tl)
