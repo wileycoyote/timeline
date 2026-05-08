@@ -4,7 +4,7 @@ import pandas as pd
 from db.database import engine
 from sqlalchemy import select
 from db.models import EventGroup, Event
-from datetime import datetime as dt
+import datetime
 import pandas_log
 import numpy as np
 import matplotlib.dates as mdates
@@ -18,7 +18,7 @@ conn = None
 
 
 def dt_datetime(d):
-    return dt.datetime(d[0], d[1], d[2])
+    return datetime.date(d[0], d[1], d[2])
 
 
 def_start_frame = dt_datetime(init_start_frame)
@@ -27,10 +27,11 @@ def_end_frame = dt_datetime(init_end_frame)
 
 class Timeline(object):
 
-    def __init__(self, s, e, ax):
+    def __init__(self, s, e, ax, fig):
         self.ax = ax
         self.date_start_frame = s
         self.date_end_frame = e
+        self.fig = fig
         self.get_data()
         self.display_slice()
 
@@ -52,17 +53,16 @@ class Timeline(object):
             )
 
     def increment_frame_years(self):
-        timedelta = dt.timedelta(days=365)
+        timedelta = datetime.timedelta(days=365*5)
         self.date_start_frame = self.date_start_frame + timedelta
         self.date_end_frame = self.date_end_frame + timedelta
 
     def decrement_frame_years(self):
-        timedelta = dt.timedelta(days=365)
+        timedelta = datetime.timedelta(days=365)
         self.date_start_frame = self.date_start_frame - timedelta
         self.date_end_frame = self.date_end_frame - timedelta
 
     def on_scroll(self, event):
-        import pdb; pdb.set_trace()
         if event.key == 'right':
             self.increment_frame_years()
         elif event.key == 'left':
@@ -76,7 +76,7 @@ class Timeline(object):
         #
         events_slice = self.events.query('date >= @s & date < @e')
         self.dates = [
-            dt.strptime(d, "%Y-%m-%d")
+            datetime.datetime.strptime(d, "%Y-%m-%d")
             for d in events_slice['date'].values
         ]
         self.levels = [
@@ -97,6 +97,24 @@ class Timeline(object):
         # The baseline.
         self.get_events_slice()
         ax = self.ax
+        """
+            The order is important for apps of this kind
+
+            ax.cla()
+            set locators/formatters
+            set x-limits (datetimes or date2num)
+            plot/vlines/annotate
+            fig.canvas.draw_idle()
+        """
+        ax.cla()
+        ax.xaxis.set(
+            major_locator=mdates.YearLocator(),
+            major_formatter=mdates.DateFormatter("%Y")
+        )
+        plt.xlim(
+            self.date_start_frame,
+            self.date_end_frame
+        )
         ax.set(title="Events for 1300 to 1600")
         ax.axhline(0, c="black")
         ax.vlines(
@@ -149,10 +167,8 @@ class Timeline(object):
         ax.yaxis.set_visible(False)
         ax.spines[["left", "top", "right"]].set_visible(False)
 
-        ax.xaxis.set(
-            major_locator=mdates.YearLocator(),
-            major_formatter=mdates.DateFormatter("%Y"))
         ax.grid(False)
+        self.fig.canvas.draw()
 
 
 def run_app():
@@ -162,6 +178,6 @@ def run_app():
     with plt.style.context('Solarize_Light2'):
 
         fig, ax = plt.subplots(figsize=(18, 9))
-        t = Timeline(init_start_frame, init_end_frame, ax)
+        t = Timeline(def_start_frame, def_end_frame, ax, fig)
         fig.canvas.mpl_connect('key_press_event', t.on_scroll)
         plt.show()
