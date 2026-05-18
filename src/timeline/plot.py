@@ -8,6 +8,8 @@ import datetime
 import pandas_log
 import numpy as np
 import matplotlib.dates as mdates
+from matplotlib.widgets import Button
+from dateutil.relativedelta import relativedelta
 
 init_start_frame = (1500, 1, 1)
 init_end_frame = (1526, 1, 1)
@@ -33,7 +35,49 @@ class Timeline(object):
         self.date_end_frame = e
         self.fig = fig
         self.get_data()
+
+        # create navigation buttons ONCE (use positions inside [0,1])
+        axprev = self.fig.add_axes([0.81, 0.02, 0.08, 0.04])
+        axnext = self.fig.add_axes([0.90, 0.02, 0.08, 0.04])
+        self.bprev = Button(axprev, 'Previous')
+        self.bnext = Button(axnext, 'Next')
+        self.bprev.on_clicked(self.onclick_prev)
+        self.bnext.on_clicked(self.onclick_next)
+
+        # ensure the canvas has keyboard focus (backend-specific)
+        try:
+            self.fig.canvas.set_focus()      # modern Matplotlib
+        except Exception:
+            try:
+                self.fig.canvas.setFocus()   # Qt backend
+            except Exception:
+                try:
+                    self.fig.canvas.get_tk_widget().focus_set()  # Tk backend
+                except Exception:
+                    pass
+
+        # connect key events once
+        self.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
+        self.fig.canvas.mpl_connect('key_release_event', self.on_key_release)
+
+        # (optional) timer for continuous scrolling
+        # self._timer = self.fig.canvas.new_timer(interval=30)
+        # self._timer.add_callback(self._on_timer)
+        # self._timer.start()
+
         self.display_slice()
+
+    # implement key handlers and timer callback to shift the date window
+    def on_key_press(self, event):
+        print(f"on keypress {event.key}")
+        # example single-step handling
+        if event.key in ('right', 'd'):
+            self.next()
+        elif event.key in ('left', 'a'):
+            self.prev()
+
+    def on_key_release(self, event):
+        pass
 
     def get_data(self):
         stmt = select(EventGroup)
@@ -53,20 +97,27 @@ class Timeline(object):
             )
 
     def increment_frame_years(self):
-        timedelta = datetime.timedelta(days=365*5)
+        timedelta = relativedelta(years=5)
         self.date_start_frame = self.date_start_frame + timedelta
         self.date_end_frame = self.date_end_frame + timedelta
 
     def decrement_frame_years(self):
-        timedelta = datetime.timedelta(days=365)
+        timedelta = relativedelta(years=5)
         self.date_start_frame = self.date_start_frame - timedelta
         self.date_end_frame = self.date_end_frame - timedelta
 
-    def on_scroll(self, event):
-        if event.key == 'right':
-            self.increment_frame_years()
-        elif event.key == 'left':
-            self.decrement_frame_years()
+    def onclick_next(self, event):
+        self.next()
+
+    def onclick_prev(self, event):
+        self.prev()
+
+    def next(self):
+        self.increment_frame_years()
+        self.display_slice()
+
+    def prev(self):
+        self.decrement_frame_years()
         self.display_slice()
 
     def get_events_slice(self):
@@ -111,12 +162,17 @@ class Timeline(object):
             major_locator=mdates.YearLocator(),
             major_formatter=mdates.DateFormatter("%Y")
         )
-        plt.xlim(
-            self.date_start_frame,
-            self.date_end_frame
-        )
+        print("#########")
+        ds = self.date_start_frame
+        ts = datetime.datetime(ds.year, ds.month, ds.day)
+        de = self.date_end_frame
+        te = datetime.datetime(de.year, de.month, de.day)
+        plt.xlim(ts, te)
+        print(ts)
+        print(te)
         ax.set(title="Events for 1300 to 1600")
         ax.axhline(0, c="black")
+        print(self.dates)
         ax.vlines(
             self.dates,
             0,
@@ -168,7 +224,9 @@ class Timeline(object):
         ax.spines[["left", "top", "right"]].set_visible(False)
 
         ax.grid(False)
-        self.fig.canvas.draw()
+
+        # self.fig.canvas.draw()
+        plt.draw()
 
 
 def run_app():
@@ -178,6 +236,5 @@ def run_app():
     with plt.style.context('Solarize_Light2'):
 
         fig, ax = plt.subplots(figsize=(18, 9))
-        t = Timeline(def_start_frame, def_end_frame, ax, fig)
-        fig.canvas.mpl_connect('key_press_event', t.on_scroll)
+        Timeline(def_start_frame, def_end_frame, ax, fig)
         plt.show()
