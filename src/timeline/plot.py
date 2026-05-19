@@ -20,7 +20,7 @@ conn = None
 
 
 def dt_datetime(d):
-    return datetime.date(d[0], d[1], d[2])
+    return datetime.datetime(d[0], d[1], d[2])
 
 
 def_start_frame = dt_datetime(init_start_frame)
@@ -163,13 +163,12 @@ class Timeline(object):
             major_formatter=mdates.DateFormatter("%Y")
         )
         print("#########")
-        ds = self.date_start_frame
-        ts = datetime.datetime(ds.year, ds.month, ds.day)
-        de = self.date_end_frame
-        te = datetime.datetime(de.year, de.month, de.day)
-        plt.xlim(ts, te)
-        print(ts)
-        print(te)
+        print(self.date_start_frame)
+        print(self.date_end_frame)
+        plt.xlim(
+            self.date_start_frame,
+            self.date_end_frame
+        )
         ax.set(title="Events for 1300 to 1600")
         ax.axhline(0, c="black")
         print(self.dates)
