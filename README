@@ -1,0 +1,7 @@
+This project is an attempt to build a timeline of historical events in the Late Medeival/Early Modern period
+
+It uses the latest python, and a bunch of other resources pulled down by pyproject.toml
+
+I've noticed some resources that shouldn't be there and the documentation is ... sketchy ... that's life, folks. 
+
+The current problem is that I've tried scrolling by arrow keys and buttons but the timeline keeps being messed up. See screen captures in the folder screen captures
