@@ -1,7 +1,11 @@
 This project is an attempt to build a timeline of historical events in the Late Medeival/Early Modern period
 
-It uses the latest python, and a bunch of other resources pulled down by pyproject.toml
-
-I've noticed some resources that shouldn't be there and the documentation is ... sketchy ... that's life, folks. 
-
 The current problem is that I've tried scrolling by arrow keys and buttons but the timeline keeps being messed up. See screen captures in the folder screen captures
+
+Only tested on Linux Ubuntu 24.0.4.4
+
+Uses python 3.12.3 
+
+Ouput of uname -a
+
+Linux zelenzky 6.8.0-117-lowlatency #117.1-Ubuntu SMP PREEMPT_DYNAMIC Wed May  6 20:10:37 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
