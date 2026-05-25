@@ -35,7 +35,7 @@ class Timeline(object):
         self.date_end_frame = e
         self.fig = fig
         self.get_data()
-
+        import pdb; pdb.set_trace()
         # create navigation buttons ONCE (use positions inside [0,1])
         axprev = self.fig.add_axes([0.81, 0.02, 0.08, 0.04])
         axnext = self.fig.add_axes([0.90, 0.02, 0.08, 0.04])
@@ -121,11 +121,14 @@ class Timeline(object):
         self.display_slice()
 
     def get_events_slice(self):
-        s = str(self.date_start_frame.year)
-        e = str(self.date_end_frame.year)
+        s = self.date_start_frame.year
+        s1 = str(s)
+        e = self.date_end_frame.year
+        e1 = str(e)
         # get all the events columns that intersect our time-slice
         #
-        events_slice = self.events.query('date >= @s & date < @e')
+        events_slice = self.events.query('date >= @s1 & date < @e1')
+        import pprint; pprint.pprint(events_slice)
         self.dates = [
             datetime.datetime.strptime(d, "%Y-%m-%d")
             for d in events_slice['date'].values
@@ -141,6 +144,12 @@ class Timeline(object):
         ]
         self.inparens = [
             x for x in events_slice['inparens'].values
+        ]
+        self.xticks = [
+            x for x in range(s, e + 1)
+        ]
+        self.xlabels = [
+            str(x) for x in range(s, e + 1)
         ]
 
     def display_slice(self):
@@ -158,17 +167,23 @@ class Timeline(object):
             fig.canvas.draw_idle()
         """
         ax.cla()
-        ax.xaxis.set(
+        """ ax.xaxis.set(
             major_locator=mdates.YearLocator(),
             major_formatter=mdates.DateFormatter("%Y")
-        )
+        )"""
+        print("#########")
+        print(self.xticks)
+        print(self.xlabels)
+        ax.set_xticks(self.xticks, labels=self.xlabels, minor=True)
         print("#########")
         print(self.date_start_frame)
         print(self.date_end_frame)
+        print("#########")
         plt.xlim(
             self.date_start_frame,
             self.date_end_frame
         )
+        ax.set_ylim(-7, 7)
         ax.set(title="Events for 1300 to 1600")
         ax.axhline(0, c="black")
         print(self.dates)
@@ -191,7 +206,6 @@ class Timeline(object):
         # set the top axis in years
         # set default values for now
         ax.margins(y=0.2)
-        ax.set_ylim(-7, 7)
         # annotate the points on the horizontal line
         for d, level, colour, label, inparens in \
                 zip(self.dates, self.levels, self.colours,
@@ -225,7 +239,7 @@ class Timeline(object):
         ax.grid(False)
 
         # self.fig.canvas.draw()
-        plt.draw()
+        self.fig.canvas.draw()
 
 
 def run_app():
