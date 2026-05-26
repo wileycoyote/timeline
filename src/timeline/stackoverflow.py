@@ -1,27 +1,70 @@
 import matplotlib.pyplot as plt
 
 import pandas as pd
-from db.database import engine
-from sqlalchemy import select
-from db.models import EventGroup, Event
-import pandas_log
+import datetime
 import numpy as np
 from matplotlib.widgets import Button
 from dateutil.relativedelta import relativedelta
-
-import os
-import sys
+from io import StringIO
 import logging
-import datetime
+import sys
+import os
 
 logger = logging.getLogger(__name__)
 
 init_start_frame = (1500, 1, 1)
 init_end_frame = (1526, 1, 1)
-
 range_units = 54
 
 conn = None
+TESTDATA = """
+id;label;date;inparens;parent;colour;level
+1;Martin V;1417-01-01;;1;purple;1.5
+2;Eugene IV;1431-01-01;;1;purple;1.5
+3;Nicholas V;1447-01-01;;1;purple;1.5
+4;Callixtus III;1455-01-01;;1;purple;1.5
+5;Pius II;1458-01-01;;1;purple;1.5
+6;Paul II;1464-01-01;;1;purple;1.5
+7;Sixtus IV;1471-01-01;;1;purple;1.5
+8;Innocent VIII;1484-01-01;;1;purple;1.5
+9;Alexander VI;1492-01-01;;1;purple;1.5
+10;Pius III;1503-01-01;;1;purple;1.5
+11;Julius II;1503-06-01;;1;purple;1.5
+12;Leo X;1513-06-01;;1;purple;1.5
+13;Adrian VI;1522-01-01;;1;purple;1.5
+14;Clement VII;1523-06-01;;1;purple;1.5
+15;Paul III;1534-06-01;;1;purple;1.5
+16;Julius III;1550-01-01;;1;purple;1.5
+17;Marcellus II;1555-01-01;;1;purple;1.5
+18;Paul IV;1555-06-01;;1;purple;1.5
+19;Printing Press;1440-01-01;;2;blue;1
+20;First Italian War;1494-01-01;start;3;green;0.8
+21;First Italian War;1498-01-01;end;3;green;0.8
+22;Second Italian War;1499-01-01;start;3;green;0.8
+23;Second Italian War;1501-01-01;end;3;green;0.8
+24;Third Italian War;1502-01-01;start;3;green;0.8
+25;Third Italian War;1504-01-01;end;3;green;0.8
+26;Fourth Italian War;1508-01-01;start;3;green;0.8
+27;Fourth Italian War;1516-01-01;end;3;green;0.8
+28;Fifth Italian War;1521-01-01;start;3;green;0.8
+29;Fifth Italian War;1526-01-01;end;3;green;0.8
+30;Sixth Italian War;1526-01-01;end;3;green;0.8
+31;Sixth Italian War;1530-01-01;end;3;green;0.8
+32;Seventh Italian War;1536-01-01;start;3;green;0.8
+33;Seventh Italian War;1538-01-01;end;3;green;0.8
+34;Eighth Italian War;1542-01-01;start;3;green;0.8
+35;Eighth Italian War;1546-01-01;end;3;green;0.8
+36;Ninth Italian War;1551-01-01;start;3;green;0.8
+37;Ninth Italian War;1551-01-01;end;3;green;0.8
+38;Giovanni Cimabue;1240-01-01;born;4;orange;-1
+39;Giovanni Cimabue;1302-01-01;died;4;orange;-1
+40;Jacopo della Quercia;1374-01-01;born;4;orange;-1
+41;Jacopo della Quercia;1438-08-20;died;4;orange;-1
+42;Leonardo da Vinci;1452-04-05;born;4;orange;-1
+43;Leonardo da Vinci;1519-05-02;died;4;orange;-1
+44;Michelangelo;1475-03-06;born;4;orange;-1
+45;Michelangelo;1564-02-18;died;4;orange;-1
+"""
 
 
 def dt_datetime(d):
@@ -40,7 +83,7 @@ class Timeline(object):
         self.date_end_frame = e
         self.fig = fig
         self.get_data()
-        import pdb; pdb.set_trace()
+
         # create navigation buttons ONCE (use positions inside [0,1])
         axprev = self.fig.add_axes([0.81, 0.02, 0.08, 0.04])
         axnext = self.fig.add_axes([0.90, 0.02, 0.08, 0.04])
@@ -85,21 +128,7 @@ class Timeline(object):
         pass
 
     def get_data(self):
-        stmt = select(EventGroup)
-        # set up the dataframe for timeline groups
-        self.events_group = pd.read_sql_query(
-            stmt,
-            con=engine,
-            index_col='id',
-        )
-        # set up the dataframe for timelines
-        stmt = select(Event, EventGroup).where(
-            EventGroup.id == Event.parent)
-        with pandas_log.enable():
-            self.events = pd.read_sql_query(
-                stmt,
-                con=engine,
-            )
+        self.events = pd.read_csv(StringIO(TESTDATA), sep=";")
 
     def increment_frame_years(self):
         timedelta = relativedelta(years=5)
@@ -156,6 +185,9 @@ class Timeline(object):
         self.xlabels = [
             str(x) for x in range(s, e + 1)
         ]
+
+    def set_timeline_dict(self):
+        self.data = dict()
 
     def display_slice(self):
         #
@@ -248,11 +280,11 @@ class Timeline(object):
 
 
 def run_app():
+    import pdb; pdb.set_trace()
     leaf = os.path.basename(sys.argv[0])
     log = f"logs/{leaf}.log"
     logging.basicConfig(filename=log, level=logging.INFO)
     logger.info('Started')
-
     # this initialises the data
     # this navigates the dates
     # to allow for distribution of horizontal timelines, this
@@ -261,4 +293,4 @@ def run_app():
         fig, ax = plt.subplots(figsize=(18, 9))
         Timeline(def_start_frame, def_end_frame, ax, fig)
         plt.show()
-    logger.info("Finished")
+    logger.info("finished")
